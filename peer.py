@@ -1,19 +1,15 @@
 from repository import *
-from Send import Sender
-from Recieve import Receiver
-
-HOST = '127.0.0.1'
-DRDCPORT = 65432
-
+from sender import Sender
+from reciever import Receiver
 
 class Peer:
     def __init__(self):
         self.DS = DataStore()
-        self.r = Sender(myPort, myName, DRDCPORT, self.DS).start()  # Send to DRDC that I'm a new user, add me plz
+        # IMPORTANT: start() is a method of the Thread class in Python. When called, it starts a new thread and calls the run() method of the Thread class in that new thread.
+        self.r = Sender(my_port, my_name, self.DS).start()  # Send to DRDC that I'm a new user, add me plz
         # switch to see if any one has send me a msg
-        self.s = Receiver(myPort, self).start()
+        self.s = Receiver(my_port, self).start()
 
-
-myName = input("Name: ")
-myPort = int(input("Port: "))
+my_name = input("Name: ")
+my_port = int(input("Port: "))
 p = Peer()

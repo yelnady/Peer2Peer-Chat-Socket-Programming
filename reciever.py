@@ -33,7 +33,7 @@ class Receiver(Thread):
                                 print("Msg_from {}|{}|{}: {}".format(sender_name, Receiver.HOST, sender_port, data))
                         elif "New_user_has_connected" in data:
                             print(data)
-                        elif "Exit" in data:
+                        elif "exit" in data:
                             sys.exit(0)
                         time.sleep(random.randint(0, 5))
             except:
