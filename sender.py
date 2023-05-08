@@ -76,14 +76,18 @@ class Sender(Thread):
                     data = "request_queue|{}".format(self.my_port) # form a request queue for the message, it needs to start with the string "request_queue" to be parsed
                     s2.sendall(data.encode(self.ENCODING)) # send the request queue to DRDC
                 except:
-                    print("An error has occured") # if there is an error then print an error message
+                    print(f"There's no user with the port {port}") # if there is an error then print an error message
+                    return 
             except:
                 print("Enter a valid port number") # If the user enters an invalid input, then print an error message
-            
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2: # create another socket object for connection
-            s2.bind((self.HOST_ADDR, 1)) # bind the fake port to listen to messages from other users
-            s2.listen(15) # Start listening for connections from other users
-            conn, addr = s2.accept() # accept the connection request and get the address of the connected user
+                return;
+    
+        # "bind" associates a socket with a specific IP address and port number
+        # "listen" sets the maximum number of incoming connections that can be queued up and waiting for the server to accept them.
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:  
+            s2.bind((self.HOST_ADDR, 6666)) 
+            s2.listen(15) 
+            conn, addr = s2.accept()  
             with conn:
                 Queuelength = conn.recv(1024).decode() # receive the length of the queue
 
@@ -98,10 +102,12 @@ class Sender(Thread):
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
                     s2.connect((self.HOST_ADDR, self.DRDCPORT))
                     s2.sendall(data.encode(self.ENCODING))
-            except:print("An error has occured")
+            except:
+                print("An error has occured")
         else :
-            print("Please resend the message, the queue is full")
+            print("Please wait then resend the message, the queue is full")
 
+        print("MESSAGE IS SNET!!")
 
     def exit(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2:
@@ -124,7 +130,7 @@ class Sender(Thread):
 
    
 
-
+    # We should generate the fake data, and just use the send_msg function to send 
     def generate_fake_data(self):
         data = None
 
@@ -144,7 +150,7 @@ class Sender(Thread):
 
         # Creating a new socket for receiving data
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s2: 
-            s2.bind((self.HOST_ADDR, 1))  # FAKE PORT TO LET OTHERS SEND TO ME ON
+            s2.bind((self.HOST_ADDR, 6666))  # FAKE PORT TO LET OTHERS SEND TO ME ON
             s2.listen(15)
             conn, addr = s2.accept()
             with conn:

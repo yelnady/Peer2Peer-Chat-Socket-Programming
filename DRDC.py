@@ -1,4 +1,4 @@
-import socket,time,os
+import socket,time,shutil
 from _thread import *
 
 from repository import *
@@ -7,7 +7,7 @@ class DRDC:
     # Class-level constants and variables
     HOST = '127.0.0.1' # the local IP address of the host
     PORT = 65432 # the port number for communication
-    users = [] # a list to store User objects
+    users = set() # a set to store User objects
     DS = DataStore() # an instance of DataStore class
     conn = None # a variable to hold the connection object
     name = "DRDC" # a string to hold the name of the DRDC
@@ -39,37 +39,41 @@ class DRDC:
 
             # func: tell_others()
             if "connect_request" in data:
-                print("connect request received")
+                print("Connect Request Received!")
                 arr = data.split("|")
+                # Splitting the paramaters and ensures there're four
                 if len(arr) == 4:  # ignoring the first one cuz it's the command
                     user_name = arr[1];
                     user_host = arr[2];
                     user_port = arr[3];
                     print(data)  # connect_request From User: |joe|127.0.0.1|123
+
+                    # Send message to notify all users about that new user. I haven't added myself yet, so nothing is sent to myself
                     for u in DRDC.users:
                         port = int(u.port);
-                        name = u.name;
-                        # if name of current user not same as one comes from, and my port not the DRDC
                         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp:
                             temp.connect((DRDC.HOST, port))
-                            temp.send(
-                                "New_user_has_connected : {}|{}|{}| ".format(user_name, user_host, user_port).encode())
-                    DRDC.users.append(User(user_name, user_host, user_port))
+                            temp.send("new_user_has_connected : {}|{}|{}| ".format(user_name, user_host, user_port).encode())
+
+                    # Add myself to the DRDC static attribute, then print a list of all current users1
+                    DRDC.users.add(User(user_name, user_host, user_port))
                     DRDC.print_users()
-                    
+
             # func: exit()
             elif "delete" in data:
                 data = data.split('|')
                 DRDC.delUser(data[1])
+
             # func: send_msg()
             elif "Receive_From" in data:  # if any one sends a msg in general , this one should know that there's a msg has been received
                 DRDC.DS.add_to_queue(data)
+
             # func: send_msg()
             elif "request_queue" in data:
                 data = data.split('|')
                 current_port = int(data[1])
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as temp:
-                    temp.connect((DRDC.HOST, 1))
+                    temp.connect((DRDC.HOST, 6666))
                     msg = str(DRDC.DS.get_queue_length())
                     temp.send(msg.encode())
 
@@ -80,7 +84,7 @@ class DRDC:
         # copy from queue to repo
         time.sleep(20)
 
-        while 1:
+        while True:
             print("Time to synchronize")
             print("queue is " + str(DRDC.DS.get_queue()))
             print("Datastore is " + str(DRDC.DS.get_data_store()))
@@ -93,7 +97,7 @@ class DRDC:
                         f.write(msg.encode())
                     DRDC.DS.free_the_datastore()
             for u in DRDC.users:
-                os.popen('copy DRDC_DS.txt ' + u.name + "_DS.txt")
+                shutil.copy('DRDC_DS.txt', u.name + "_DS.txt")
             if queue:
                 for msg in queue:
                     DRDC.DS.add_to_datastore(msg)
@@ -102,7 +106,7 @@ class DRDC:
 
     @staticmethod
     def start():
-        print("Welcome to The Decentralized Replicated Data Store")
+        print("Welcome to The Decentralized Replicated Data Store!!")
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((DRDC.HOST, DRDC.PORT))
             s.listen(15)

@@ -10,6 +10,8 @@ class Peer:
         # switch to see if any one has send me a msg
         self.s = Receiver(my_port, self).start()
 
+
+# On Unix-based systems like macOS, only the root user is allowed to bind to ports lower than 1024.
 my_name = input("Name: ")
 my_port = int(input("Port: "))
 p = Peer()
